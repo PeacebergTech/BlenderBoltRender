@@ -1,17 +1,3 @@
-import { BlenderRenderOptions, RenderProgress } from './blender';
-
-export interface BlenderAPI {
-  isBlenderAvailable(): Promise<boolean>;
-  getBlenderVersion(): Promise<string>;
-  setBlenderPath(path: string): Promise<void>;
-  getBlenderPath(): Promise<string>;
-  renderFile(options: BlenderRenderOptions, onProgress?: (progress: RenderProgress) => void): Promise<void>;
-  cancelRender(blendFile: string): Promise<void>;
-  cancelAllRenders(): Promise<void>;
-  getActiveRenders(): Promise<string[]>;
-  isRenderActive(blendFile: string): Promise<boolean>;
-}
-
 export interface ElectronAPI {
   selectBlendFiles: () => Promise<string[]>;
   selectOutputDirectory: () => Promise<string | null>;
@@ -24,7 +10,6 @@ export interface ElectronAPI {
   getPlatform: () => Promise<string>;
   onMenuAction: (callback: (action: string, data?: any) => void) => void;
   removeMenuActionListener: () => void;
-  blender: BlenderAPI;
 }
 
 export interface DragDropAPI {

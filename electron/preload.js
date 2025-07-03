@@ -28,41 +28,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // Remove menu action listener
   removeMenuActionListener: () => {
     ipcRenderer.removeAllListeners('menu-action');
-  },
-
-  // Blender operations
-  blender: {
-    isBlenderAvailable: () => ipcRenderer.invoke('blender-is-available'),
-    getBlenderVersion: () => ipcRenderer.invoke('blender-get-version'),
-    setBlenderPath: (path) => ipcRenderer.invoke('blender-set-path', path),
-    getBlenderPath: () => ipcRenderer.invoke('blender-get-path'),
-    renderFile: (options, onProgress) => {
-      const progressId = `progress-${Date.now()}-${Math.random()}`;
-      
-      if (onProgress) {
-        const progressHandler = (event, id, progress) => {
-          if (id === progressId) {
-            onProgress(progress);
-          }
-        };
-        
-        ipcRenderer.on('blender-progress', progressHandler);
-        
-        // Clean up listener when render completes
-        const cleanup = () => {
-          ipcRenderer.removeListener('blender-progress', progressHandler);
-        };
-        
-        return ipcRenderer.invoke('blender-render-file', options, progressId)
-          .finally(cleanup);
-      }
-      
-      return ipcRenderer.invoke('blender-render-file', options, progressId);
-    },
-    cancelRender: (blendFile) => ipcRenderer.invoke('blender-cancel-render', blendFile),
-    cancelAllRenders: () => ipcRenderer.invoke('blender-cancel-all-renders'),
-    getActiveRenders: () => ipcRenderer.invoke('blender-get-active-renders'),
-    isRenderActive: (blendFile) => ipcRenderer.invoke('blender-is-render-active', blendFile)
   }
 });
 
