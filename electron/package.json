@@ -1,0 +1,7 @@
+{
+  "name": "blender-batch-render-farm-electron",
+  "version": "1.0.0",
+  "description": "Electron main process for Blender Batch Render Farm",
+  "main": "main.js",
+  "type": "module"
+}
