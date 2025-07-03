@@ -1,4 +1,5 @@
-import { blenderService, BlenderRenderOptions, RenderProgress } from './BlenderService';
+import { BlenderAPI } from './BlenderService';
+import { BlenderRenderOptions, RenderProgress } from '../types/blender';
 
 export interface QueueItem {
   id: string;
@@ -21,6 +22,11 @@ export class RenderQueue {
   private currentItem: QueueItem | null = null;
   private progressCallbacks: ((item: QueueItem) => void)[] = [];
   private queueCallbacks: ((queue: QueueItem[]) => void)[] = [];
+  private blenderAPI: BlenderAPI | null = null;
+
+  public setBlenderAPI(blenderAPI: BlenderAPI): void {
+    this.blenderAPI = blenderAPI;
+  }
 
   public addToQueue(item: Omit<QueueItem, 'id' | 'status' | 'progress'>): string {
     const queueItem: QueueItem = {
@@ -47,8 +53,8 @@ export class RenderQueue {
     const item = this.queue[index];
     
     // If item is currently rendering, cancel it
-    if (item.status === 'rendering') {
-      blenderService.cancelRender(item.blendFile);
+    if (item.status === 'rendering' && this.blenderAPI) {
+      this.blenderAPI.cancelRender(item.blendFile);
     }
 
     this.queue.splice(index, 1);
@@ -58,7 +64,9 @@ export class RenderQueue {
 
   public clearQueue(): void {
     // Cancel all active renders
-    blenderService.cancelAllRenders();
+    if (this.blenderAPI) {
+      this.blenderAPI.cancelAllRenders();
+    }
     
     // Clear the queue
     this.queue = [];
@@ -80,7 +88,9 @@ export class RenderQueue {
 
   public stopQueue(): void {
     this.isPaused = true;
-    blenderService.cancelAllRenders();
+    if (this.blenderAPI) {
+      this.blenderAPI.cancelAllRenders();
+    }
     
     // Reset current item status
     if (this.currentItem) {
@@ -141,7 +151,7 @@ export class RenderQueue {
   }
 
   private async processQueue(): Promise<void> {
-    if (this.isProcessing || this.isPaused) return;
+    if (this.isProcessing || this.isPaused || !this.blenderAPI) return;
 
     this.isProcessing = true;
 
@@ -158,7 +168,7 @@ export class RenderQueue {
       this.notifyQueueUpdate();
 
       try {
-        await blenderService.renderFile(
+        await this.blenderAPI.renderFile(
           nextItem.options,
           (progress: RenderProgress) => {
             nextItem.progress = progress.percentage;
